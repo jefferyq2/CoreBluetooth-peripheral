@@ -21,7 +21,9 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate {
     var peripheralManager: CBPeripheralManager?
     var transferCharacteristic: CBMutableCharacteristic?
     
+    // the string we want to send to BLE central
     let sendingString = "Hello Bluetooth!"
+    
     var dataToSend: Data?
     var sendDataIndex: Int?
     
@@ -60,10 +62,11 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate {
             print("Sent: EOM")
         }
         
-        // It didn't send, so we'll exit and wait for peripheralManagerIsReadyToUpdateSubscribers to call sendData again
+        // If it didn't send, so we'll exit and wait for peripheralManagerIsReadyToUpdateSubscribers to call sendData again
         return
         
     }
+    
     func sendData() {
         
         print("sendData() invoked.")
@@ -85,9 +88,7 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate {
             }
             */
             
-            // Copy out the data we want
             let bytes_temp1 = ((dataToSend! as NSData).bytes).advanced(by: sendDataIndex!)
-            
             let chunk = Data(
                 bytes: bytes_temp1,
                 count: amountToSend
@@ -98,19 +99,19 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate {
                 for: transferCharacteristic!,
                 onSubscribedCentrals: nil
             )
-            
+
             if (!didSend) {
                 return
             }
             
             sendDataIndex! += amountToSend;
             
+            // generate output for data sent in this round
             let stringFromData = NSString(
                 data: chunk,
                 encoding: String.Encoding.utf8.rawValue
             )
             print("Sent: \(stringFromData)")
-            
             
             // Was it the last data?
             if (sendDataIndex! >= dataToSend!.count) {
@@ -165,6 +166,7 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate {
     
     func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
         // Start sending again
+        print("peripheralManagerIsReady(toUpdateSubscribers).")
         sendData()
     }
     
